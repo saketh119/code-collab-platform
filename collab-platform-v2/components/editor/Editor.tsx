@@ -4,24 +4,32 @@ import { useEffect, useRef } from "react";
 import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
 import { saveFile } from "@/lib/api";
+import { useSession } from "next-auth/react";
 
-function randomUser() {
-  const names = ["Alice", "Bob", "Charlie", "Dev", "Guest"];
-  const colors = ["#ff4d4f", "#40a9ff", "#73d13d", "#9254de", "#faad14"];
-
-  return {
-    name: names[Math.floor(Math.random() * names.length)],
-    color: colors[Math.floor(Math.random() * colors.length)],
-  };
+function getUserColor(userId: string): string {
+  // Generate consistent color from user ID
+  const colors = [
+    "#ff4d4f",
+    "#40a9ff",
+    "#73d13d",
+    "#9254de",
+    "#faad14",
+    "#13c2c2",
+    "#eb2f96",
+    "#52c41a",
+  ];
+  const hash = userId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return colors[hash % colors.length];
 }
 
 export default function Editor({ sessionId }: { sessionId: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const initializedRef = useRef(false);
   const saveTimeout = useRef<any>(null);
+  const { data: session } = useSession();
 
   useEffect(() => {
-    if (initializedRef.current) return;
+    if (initializedRef.current || !session?.user) return;
     initializedRef.current = true;
 
     let editor: any;
@@ -30,7 +38,7 @@ export default function Editor({ sessionId }: { sessionId: string }) {
     let ydoc: Y.Doc | null = null;
 
     async function init() {
-      if (!containerRef.current) return;
+      if (!containerRef.current || !session?.user) return;
 
       // 🔒 Client-only imports
       const monaco = await import("monaco-editor");
@@ -48,7 +56,7 @@ export default function Editor({ sessionId }: { sessionId: string }) {
       const yText = ydoc.getText("monaco");
 
       // 2️⃣ User identity (awareness)
-      const user = randomUser();
+      const user = { name: session.user.name, color: getUserColor(session.user.id) };
       provider.awareness.setLocalState({ user });
 
       // 3️⃣ Monaco model (single, normalized)

@@ -1,39 +1,54 @@
 "use client";
 
-import { startSession } from "@/lib/api";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useEffect } from "react";
 
 export default function HomePage() {
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
 
-  const handleStart = async () => {
-    const data = await startSession();
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/dashboard");
+    }
+  }, [status, router]);
 
-    startTransition(() => {
-      router.push(
-        `/session/${data.sessionId}?ws=${encodeURIComponent(data.wsUrl)}`
-      );
-    });
-  };
+  if (status === "loading") {
+    return (
+      <main className="h-screen flex items-center justify-center bg-neutral-100">
+        <p className="text-neutral-600">Loading...</p>
+      </main>
+    );
+  }
 
   return (
-    <main className="h-screen flex items-center justify-center bg-neutral-100">
-      <div className="bg-white p-8 rounded-xl shadow-md w-[320px] space-y-4 text-center">
-        <h1 className="text-2xl font-semibold">Collab Platform</h1>
-
-        <p className="text-sm text-gray-500">
-          Start an isolated coding session with a live terminal.
+    <main className="h-screen flex items-center justify-center bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
+      <div className="text-center px-8 max-w-2xl">
+        <h1 className="text-6xl font-bold text-white mb-6">
+          Collab Platform
+        </h1>
+        <p className="text-xl text-neutral-300 mb-12">
+          Real-time collaborative coding with live terminals.
+          <br />
+          Code together, anywhere.
         </p>
 
-        <button
-          onClick={handleStart}
-          disabled={isPending}
-          className="w-full py-2 rounded bg-black text-white hover:bg-gray-800 disabled:opacity-50"
-        >
-          {isPending ? "Starting session…" : "Start Session"}
-        </button>
+        <div className="flex gap-4 justify-center">
+          <Link
+            href="/signup"
+            className="px-8 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold hover:from-blue-700 hover:to-blue-800 transition shadow-lg"
+          >
+            Get Started
+          </Link>
+          <Link
+            href="/login"
+            className="px-8 py-3 rounded-lg bg-white text-neutral-900 font-semibold hover:bg-neutral-100 transition shadow-lg"
+          >
+            Sign In
+          </Link>
+        </div>
       </div>
     </main>
   );
