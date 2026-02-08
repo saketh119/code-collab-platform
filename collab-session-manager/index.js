@@ -116,6 +116,30 @@ app.post("/save-file", (req, res) => {
 });
 
 /**
+ * RUN CODE INSIDE CONTAINER
+ */
+app.post("/run-code/:sessionId", (req, res) => {
+  const { sessionId } = req.params;
+
+  const session = sessions.get(sessionId);
+  if (!session) {
+    return res.status(404).json({ error: "Session not found" });
+  }
+
+  const { containerName } = session;
+  const cmd = `docker exec ${containerName} sh -c "cd /app/workspace && node main.js 2>&1"`;
+
+  exec(cmd, (err, stdout, stderr) => {
+    if (err) {
+      console.error("Execution error:", err);
+      return res.json({ output: stderr || err.message });
+    }
+
+    res.json({ output: stdout });
+  });
+});
+
+/**
  * STOP SESSION
  */
 app.post("/stop-session/:id", async (req, res) => {

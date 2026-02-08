@@ -10,7 +10,7 @@ export default function Terminal({ wsUrl }: { wsUrl: string }) {
   const [status, setStatus] = useState("connecting");
 
   useEffect(() => {
-    if (!ref.current || wsRef.current) return;
+    if (!ref.current) return;
 
     const term = new XTerm({
       cursorBlink: true,
@@ -18,27 +18,44 @@ export default function Terminal({ wsUrl }: { wsUrl: string }) {
       theme: { background: "#000000" },
     });
 
-    term.open(ref.current);
-    term.focus();
+    // Import FitAddon dynamically to avoid SSR issues
+    import("@xterm/addon-fit").then(({ FitAddon }) => {
+      const fitAddon = new FitAddon();
+      term.loadAddon(fitAddon);
 
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+      if (ref.current) {
+        term.open(ref.current);
+        term.focus();
 
-    ws.onopen = () => setStatus("connected");
-    ws.onerror = () => setStatus("error");
-    ws.onmessage = (e) => term.write(e.data);
-
-    term.onData((data) => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(data);
+        // Fit terminal after DOM is ready
+        setTimeout(() => {
+          try {
+            fitAddon.fit();
+          } catch (e) {
+            // Ignore fit errors when terminal is hidden
+          }
+        }, 0);
       }
-    });
 
-    return () => {
-      ws.close();
-      wsRef.current = null;
-      term.dispose();
-    };
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+
+      ws.onopen = () => setStatus("connected");
+      ws.onerror = () => setStatus("error");
+      ws.onmessage = (e) => term.write(e.data);
+
+      term.onData((data) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(data);
+        }
+      });
+
+      return () => {
+        ws.close();
+        wsRef.current = null;
+        term.dispose();
+      };
+    });
   }, [wsUrl]);
 
   return (

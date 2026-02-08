@@ -87,13 +87,11 @@ export default function TerminalTabs({ initialWsUrl }: { initialWsUrl: string })
             {/* Terminal Content */}
             <div className="flex-1 relative">
                 {tabs.map((tab) => (
-                    <div
-                        key={tab.id}
-                        className={`absolute inset-0 ${activeTabId === tab.id ? "block" : "hidden"
-                            }`}
-                    >
-                        <Terminal wsUrl={tab.wsUrl} />
-                    </div>
+                    activeTabId === tab.id && (
+                        <div key={tab.id} className="absolute inset-0">
+                            <Terminal wsUrl={tab.wsUrl} />
+                        </div>
+                    )
                 ))}
             </div>
         </div>

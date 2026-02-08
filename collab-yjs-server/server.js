@@ -1,6 +1,6 @@
 import { WebSocketServer } from "ws";
 import http from "http";
-import { setupWSConnection } from "y-websocket/bin/utils.js";
+import { setupWSConnection } from "y-websocket/bin/utils";
 
 const server = http.createServer();
 const wss = new WebSocketServer({ server });

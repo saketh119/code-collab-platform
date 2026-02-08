@@ -1,9 +1,10 @@
 import Session from "./session";
 
-export default function Page({
+export default async function Page({
   params,
 }: {
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }) {
-  return <Session sessionId={params.sessionId} />;
+  const { sessionId } = await params;
+  return <Session sessionId={sessionId} />;
 }
