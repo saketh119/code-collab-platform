@@ -498,10 +498,8 @@ stateDiagram-v2
 
 ## 📄 License
 
-MIT — feel free to fork, extend, and use in your own projects.
+— feel free to fork, extend, and use in your own projects.
 
----
 
-<p align="center">
-  Built with ❤️ using Next.js, Yjs, Monaco Editor, and Docker
-</p>
+
+
